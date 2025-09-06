@@ -1,0 +1,35 @@
+{
+	"name": "@zylem/assets",
+	"version": "0.1.0",
+	"description": "Demo and example assets for Zylem.",
+	"license": "MIT",
+	"author": "zylem-game-lib",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/zylem-game-lib/assets.git"
+	},
+	"bugs": {
+		"url": "https://github.com/zylem-game-lib/assets/issues"
+	},
+	"homepage": "https://github.com/zylem-game-lib/assets#readme",
+	"files": [
+		"2d/",
+		"3d/",
+		"sfx/",
+		"bg-music/",
+		"logo.png",
+		"LICENSE",
+		"README.md",
+		"index.d.ts"
+	],
+	"keywords": [
+		"zylem",
+		"assets",
+		"game",
+		"sprites",
+		"textures",
+		"models",
+		"audio"
+	],
+	"types": "index.d.ts"
+}
