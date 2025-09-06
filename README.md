@@ -1,4 +1,4 @@
-# zylem-assets
+# zylem assets
 
 Demo and example assets for Zylem. Lightweight, ready-to-use examples for testing and showcasing Zylem’s features.
 
@@ -15,7 +15,7 @@ Demo and example assets for Zylem. Lightweight, ready-to-use examples for testin
 ### 📦 Install
 
 ```bash
-npm install zylem-assets
+npm install @zylem/assets
 ```
 
 ### 🔧 Usage
@@ -23,10 +23,12 @@ npm install zylem-assets
 Import any asset path (bundlers like Vite/Webpack will resolve them):
 
 ```ts
-import playerShip from "zylem-assets/2d/space/player-ship.png";
-import grassTexture from "zylem-assets/3d/textures/grass.jpg";
-import mascotRun from "zylem-assets/3d/mascot/run.fbx";
-import coinSfx from "zylem-assets/sfx/coin-sound.mp3";
+/// <reference types="@zylem/assets" />
+
+import playerShip from "@zylem/assets/2d/space/player-ship.png";
+import grassTexture from "@zylem/assets/3d/textures/grass.jpg";
+import mascotRun from "@zylem/assets/3d/mascot/run.fbx";
+import coinSfx from "@zylem/assets/sfx/coin-sound.mp3";
 ```
 
 ---
