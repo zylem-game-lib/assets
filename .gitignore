@@ -1,1 +1,8 @@
 .DS_Store
+
+# Upload server
+server/.env
+server/.env.*
+!server/.env.example
+server/app
+server/tmp/

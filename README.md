@@ -4,7 +4,7 @@ Demo and example assets for Zylem. Lightweight, ready-to-use examples for testin
 
 ---
 
-### ✨ Features
+## ✨ Features
 
 - Curated collection of images, textures, and models primarily sourced from OpenArt
 - Organized and optimized for demos, prototypes, and example scenes in Zylem
@@ -25,10 +25,10 @@ Import any asset path (bundlers like Vite/Webpack will resolve them):
 ```ts
 /// <reference types="@zylem/assets" />
 
-import playerShip from "@zylem/assets/2d/space/player-ship.png";
-import grassTexture from "@zylem/assets/3d/textures/grass.jpg";
-import mascotRun from "@zylem/assets/3d/mascot/run.fbx";
-import coinSfx from "@zylem/assets/sfx/coin-sound.mp3";
+import playerShip from '@zylem/assets/2d/space/player-ship.png';
+import grassTexture from '@zylem/assets/3d/textures/grass.jpg';
+import mascotRun from '@zylem/assets/3d/mascot/run.fbx';
+import coinSfx from '@zylem/assets/sfx/coin-sound.mp3';
 ```
 
 ---
@@ -44,6 +44,27 @@ import coinSfx from "@zylem/assets/sfx/coin-sound.mp3";
 ### 📜 Credits
 
 - Most assets come from OpenArt. Please refer to their usage policies for licensing details.
+
+---
+
+### ☁️ Upload Server
+
+This repo also contains the source for a small Go HTTP server that uploads
+assets to a Cloudflare R2 bucket fronted by `https://assets.zylem.cloud`.
+For larger or non-bundled assets, prefer hosting them on the CDN and committing
+just JSON manifests with the resulting URLs.
+
+See [server/README.md](server/README.md) for API details, local development,
+R2 setup, and Render deployment.
+
+```bash
+curl -X POST https://uploader.zylem.dev/assets \
+  -H "Authorization: Bearer $ZYLEM_UPLOAD_KEY" \
+  -F "project=arena-demo" \
+  -F "type=model" \
+  -F "file=@./tank.glb"
+# -> { "url": "https://assets.zylem.cloud/demos/arena-demo/models/tank.9fd21a3b.glb", ... }
+```
 
 ---
 

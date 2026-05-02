@@ -1,0 +1,30 @@
+# Render Blueprint for the zylem-assets uploader.
+#
+# Render reads blueprints from the repository root (./render.yaml) by default.
+# Either copy/symlink this file to the repo root, or point Render at this path
+# explicitly when creating the Blueprint. Build paths below are relative to
+# the repo root.
+services:
+    - type: web
+      name: zylem-assets-uploader
+      runtime: docker
+      plan: starter
+      region: oregon
+      dockerfilePath: ./server/Dockerfile
+      dockerContext: ./server
+      healthCheckPath: /healthz
+      envVars:
+          - key: R2_ACCOUNT_ID
+            sync: false
+          - key: R2_ACCESS_KEY_ID
+            sync: false
+          - key: R2_SECRET_ACCESS_KEY
+            sync: false
+          - key: R2_BUCKET
+            value: zylem-assets
+          - key: PUBLIC_BASE_URL
+            value: https://assets.zylem.cloud
+          - key: API_KEY
+            sync: false
+          - key: MAX_UPLOAD_MB
+            value: '100'

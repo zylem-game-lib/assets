@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+README.md
+*.md
+tmp/
+app
+**/*_test.go
