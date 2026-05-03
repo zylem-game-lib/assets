@@ -68,6 +68,17 @@ curl -X POST https://uploader.zylem.dev/assets \
 
 ---
 
+### 🖥️ Web UI
+
+A SolidJS dev tool for batch-uploading a project directory in one click. Drop a
+folder shaped like `project/{models,images,audio,data}/file.ext`, review the
+plan, and copy or download the resulting JSON manifest of CDN URLs.
+
+See [web/README.md](web/README.md) for setup. Local-only (`npm run dev`) — it
+proxies to the Go server on `localhost:8080`, so no CORS plumbing is needed.
+
+---
+
 ### 🧾 License
 
 MIT © 2025 zylem-game-lib

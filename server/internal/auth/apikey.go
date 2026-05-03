@@ -30,7 +30,7 @@ func RequireBearer(expected string) func(http.Handler) http.Handler {
 }
 
 func unauthorized(w http.ResponseWriter) {
-	w.Header().Set("WWW-Authenticate", `Bearer realm="zylem-assets"`)
+	w.Header().Set("WWW-Authenticate", `Bearer realm="zylem-demo-assets"`)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
 	_, _ = w.Write([]byte(`{"error":"unauthorized"}`))

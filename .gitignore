@@ -6,3 +6,9 @@ server/.env.*
 !server/.env.example
 server/app
 server/tmp/
+
+# Web UI
+web/node_modules/
+web/dist/
+web/.vite/
+

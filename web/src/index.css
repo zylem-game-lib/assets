@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+	color-scheme: dark light;
+}
+
+html,
+body,
+#root {
+	min-height: 100%;
+}
+
+body {
+	font-family:
+		ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+		Arial, sans-serif;
+}

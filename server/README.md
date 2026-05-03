@@ -21,18 +21,36 @@ Headers:
 
 Form fields:
 
-| field     | required | description                                                    |
-| --------- | -------- | -------------------------------------------------------------- |
-| `file`    | yes      | The asset binary. Filename must include an allowed extension.  |
-| `project` | yes      | Slug matching `^[a-z0-9][a-z0-9-]{0,63}$` (e.g. `arena-demo`). |
-| `type`    | yes      | One of `model`, `image`, `audio`, `data`.                      |
+| field     | required | description                                                            |
+| --------- | -------- | ---------------------------------------------------------------------- |
+| `file`    | yes      | The asset binary. Filename must include an allowed extension.          |
+| `project` | yes      | Slug matching `^[a-z0-9][a-z0-9-]{0,63}$` (e.g. `arena-demo`).         |
+| `type`    | no       | Optional sanity check; if set, must match the auto-derived category.   |
 
-Allowed extensions per type:
+The category is auto-derived from the file extension and used as the second
+segment of the R2 key: `demos/{project}/{categoryFolder}/{base}.{hash}.{ext}`.
 
-- `model`: `glb`, `gltf`, `fbx`
-- `image`: `png`, `jpg`, `jpeg`, `webp`, `gif`
-- `audio`: `mp3`, `wav`, `ogg`
-- `data`: `json`
+Allowed extensions per category:
+
+| category    | folder       | extensions                                                                                |
+| ----------- | ------------ | ----------------------------------------------------------------------------------------- |
+| `image`     | `images/`    | `png`, `jpg`, `jpeg`, `webp`, `gif`, `svg`, `bmp`, `tiff`, `tif`, `ico`, `avif`           |
+| `model`     | `models/`    | `glb`, `gltf`, `fbx`, `obj`, `stl`, `dae`, `3ds`, `blend`, `usdz`                         |
+| `audio`     | `audio/`     | `mp3`, `wav`, `ogg`, `flac`, `aac`, `m4a`, `opus`, `mid`, `midi`                          |
+| `video`     | `video/`     | `mp4`, `webm`, `mov`, `m4v`, `mkv`, `avi`, `ogv`                                          |
+| `font`      | `fonts/`     | `ttf`, `otf`, `woff`, `woff2`, `eot`                                                      |
+| `document`  | `documents/` | `pdf`, `txt`, `md`, `rtf`, `csv`, `tsv`                                                   |
+| `code`      | `code/`      | `json`, `yaml`, `yml`, `xml`, `html`, `css`, `js`, `mjs`, `ts`, `jsx`, `tsx`, `toml`, `ini`, `sql` |
+| `archive`   | `archives/`  | `zip`, `tar`, `gz`, `tgz`, `7z`, `rar`, `bz2`, `xz`                                       |
+
+Anything outside this set is rejected with `415`. The following extensions are
+*always* blocked even if accidentally added to the allowlist later (defense in
+depth): `exe`, `bat`, `sh`, `ps1`, `dll`, `dmg`, `app`, `msi`, `com`, `cmd`,
+`scr`, `vbs`, `jar`.
+
+Legacy alias: `type=data` is accepted as a synonym for `type=code` (the
+pre-redesign category for JSON files). Existing scripts continue to work; new
+JSON uploads land under `code/`, not `data/`.
 
 Response `200 OK`:
 
@@ -48,13 +66,13 @@ Response `200 OK`:
 
 Errors:
 
-| status | meaning                                      |
-| ------ | -------------------------------------------- |
-| 400    | invalid `project`, `type`, or missing `file` |
-| 401    | bad / missing `Authorization: Bearer` header |
-| 413    | upload exceeds `MAX_UPLOAD_MB` bytes         |
-| 415    | extension not allowed for the given `type`   |
-| 500    | R2 upload failed or temp-file IO failed      |
+| status | meaning                                                              |
+| ------ | -------------------------------------------------------------------- |
+| 400    | invalid `project`, missing `file`, or `type` mismatches the extension |
+| 401    | bad / missing `Authorization: Bearer` header                         |
+| 413    | upload exceeds `MAX_UPLOAD_MB` bytes                                 |
+| 415    | extension not allowed or on the blocklist                            |
+| 500    | R2 upload failed or temp-file IO failed                              |
 
 The R2 object is stored with `Cache-Control: public, max-age=31536000, immutable`.
 Because the key includes a content hash, every distinct file gets its own
@@ -86,8 +104,8 @@ curl -i http://localhost:8080/healthz
 curl -i -X POST http://localhost:8080/assets \
   -H "Authorization: Bearer $API_KEY" \
   -F "project=arena-demo" \
-  -F "type=image" \
   -F "file=@./tank.png"
+# `type` is optional now; the server derives the category from the extension.
 ```
 
 ---

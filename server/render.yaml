@@ -21,7 +21,7 @@ services:
           - key: R2_SECRET_ACCESS_KEY
             sync: false
           - key: R2_BUCKET
-            value: zylem-assets
+            value: zylem-demo-assets
           - key: PUBLIC_BASE_URL
             value: https://assets.zylem.cloud
           - key: API_KEY

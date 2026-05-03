@@ -38,21 +38,93 @@ type uploadResponse struct {
 	Hash        string `json:"hash"`
 }
 
-// Curated extension → content type table. We prefer this over mime.TypeByExtension
+// Curated extension -> content type table. We prefer this over mime.TypeByExtension
 // for binary formats whose registered MIME types are unreliable (.glb, .fbx).
 var contentTypeByExt = map[string]string{
-	"glb":  "model/gltf-binary",
-	"gltf": "model/gltf+json",
-	"fbx":  "application/octet-stream",
+	// images
 	"png":  "image/png",
 	"jpg":  "image/jpeg",
 	"jpeg": "image/jpeg",
 	"webp": "image/webp",
 	"gif":  "image/gif",
+	"svg":  "image/svg+xml",
+	"bmp":  "image/bmp",
+	"tiff": "image/tiff",
+	"tif":  "image/tiff",
+	"ico":  "image/x-icon",
+	"avif": "image/avif",
+
+	// models
+	"glb":   "model/gltf-binary",
+	"gltf":  "model/gltf+json",
+	"fbx":   "application/octet-stream",
+	"obj":   "model/obj",
+	"stl":   "model/stl",
+	"dae":   "model/vnd.collada+xml",
+	"3ds":   "application/octet-stream",
+	"blend": "application/x-blender",
+	"usdz":  "model/vnd.usdz+zip",
+
+	// audio
 	"mp3":  "audio/mpeg",
 	"wav":  "audio/wav",
 	"ogg":  "audio/ogg",
+	"flac": "audio/flac",
+	"aac":  "audio/aac",
+	"m4a":  "audio/mp4",
+	"opus": "audio/opus",
+	"mid":  "audio/midi",
+	"midi": "audio/midi",
+
+	// video
+	"mp4":  "video/mp4",
+	"webm": "video/webm",
+	"mov":  "video/quicktime",
+	"m4v":  "video/x-m4v",
+	"mkv":  "video/x-matroska",
+	"avi":  "video/x-msvideo",
+	"ogv":  "video/ogg",
+
+	// fonts
+	"ttf":   "font/ttf",
+	"otf":   "font/otf",
+	"woff":  "font/woff",
+	"woff2": "font/woff2",
+	"eot":   "application/vnd.ms-fontobject",
+
+	// documents
+	"pdf": "application/pdf",
+	"txt": "text/plain; charset=utf-8",
+	"md":  "text/markdown; charset=utf-8",
+	"rtf": "application/rtf",
+	"csv": "text/csv; charset=utf-8",
+	"tsv": "text/tab-separated-values; charset=utf-8",
+
+	// code / data
 	"json": "application/json",
+	"yaml": "application/yaml",
+	"yml":  "application/yaml",
+	"xml":  "application/xml",
+	"html": "text/html; charset=utf-8",
+	"css":  "text/css; charset=utf-8",
+	"js":   "text/javascript; charset=utf-8",
+	"mjs":  "text/javascript; charset=utf-8",
+	"ts":   "text/typescript; charset=utf-8",
+	"jsx":  "text/javascript; charset=utf-8",
+	"tsx":  "text/typescript; charset=utf-8",
+	"toml": "application/toml",
+	"ini":  "text/plain; charset=utf-8",
+	"sql":  "application/sql",
+
+	// archives
+	"zip": "application/zip",
+	"tar": "application/x-tar",
+	"gz":  "application/gzip",
+	"tgz": "application/gzip",
+	"7z":  "application/x-7z-compressed",
+	"rar": "application/vnd.rar",
+	"bz2": "application/x-bzip2",
+	"xz":  "application/x-xz",
 }
 
 func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -75,12 +147,6 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	assetType, ok := keygen.ParseType(r.FormValue("type"))
-	if !ok {
-		writeError(w, http.StatusBadRequest, "field 'type' must be one of: model, image, audio, data")
-		return
-	}
-
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "field 'file' is required")
@@ -93,9 +159,32 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "filename must include an extension")
 		return
 	}
-	if !assetType.AllowsExt(ext) {
-		writeError(w, http.StatusUnsupportedMediaType, fmt.Sprintf("extension .%s is not allowed for type %q", ext, assetType))
+	if keygen.IsBlockedExt(ext) {
+		writeError(w, http.StatusUnsupportedMediaType, fmt.Sprintf("extension .%s is blocked", ext))
 		return
+	}
+
+	category, ok := keygen.CategoryFromExt(ext)
+	if !ok {
+		writeError(w, http.StatusUnsupportedMediaType, fmt.Sprintf("extension .%s is not allowed", ext))
+		return
+	}
+
+	// `type` is now optional. When supplied, it acts as a sanity check: it must
+	// match the category we'd auto-derive from the extension.
+	if declared := strings.TrimSpace(r.FormValue("type")); declared != "" {
+		parsed, ok := keygen.ParseCategory(declared)
+		if !ok {
+			writeError(w, http.StatusBadRequest, fmt.Sprintf("unknown type %q", declared))
+			return
+		}
+		if parsed != category {
+			writeError(w, http.StatusBadRequest, fmt.Sprintf(
+				"declared type %q does not match extension .%s (auto-derived: %q)",
+				declared, ext, category,
+			))
+			return
+		}
 	}
 
 	tmp, size, fullHash, err := keygen.Ingest(file)
@@ -114,7 +203,7 @@ func (h *UploadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		_ = os.Remove(tmp.Name())
 	}()
 
-	key := keygen.BuildKey(project, assetType, header.Filename, fullHash)
+	key := keygen.BuildKey(project, category, header.Filename, fullHash)
 	contentType := resolveContentType(ext)
 
 	_, err = h.S3.PutObject(r.Context(), &s3.PutObjectInput{
